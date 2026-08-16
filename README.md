@@ -1,22 +1,49 @@
 # TTS Experiments
+This repository contains several demo files to test different TTS solutions. For each package/library/API explored, I provide an idependant interactive test file to play with the functionality. I also provide a description of the package, how to set it up, and some of my own observations from testing.
+
+## Test Enviornment
+
+All files were developed and tested on an Ubuntu 22.04 machine with a 16 core Ryzen 7 CPU, (trusting Google) an NVIDIA GeForce RTX 4050 Laptop GPU, and 32 GB of RAM
+
 ## Firebot custom endpoints
 
-From my brief poking of Firebot, Firebot seems to provide 4 ways to impelement custom events. First Firebot allows you to directly run a JavaScript code snippet in response to an event. While JavaScript does have many TTS options available, without having the rest of the supporting enviornment, I am unsure what can be done with a single snippet alone
+From my brief look into Firebot, there seems to be 4 ways to implement custom events
 
-Similarly, Firebot also allows you run a full custom JavaScript script. This should allow for more complicated operations. Similarly it would allow you to declare libraries to use. That said, im not sure what enviornment Firebot uses to run the script. If its running it on your host things shoulf be fine, but if Firebot has its own restrictive JS engine it may prevent some of the actions. As such, it may still not be possible for the full script to access many of the TTS libraries offered by JS.
+#### Run A JavaScript Command
 
-Going a step further, it is also possible to register an event to run a program. This opens up additional TTS possiblities with different programming languages. Similarly this should just be running on your host, removing any enviornment concerns. The down side is it would require starting and stopping a program 86 thousand times. However, depending on how simple the model, that may not be an issue.
+In response to an event, Firebot allows you to directly run a snippet of JavaScript code. Now JavaScript is pretty flexible and does come with many options for TTS. However, most of these are libraries that need to be installed on the enviornment. If Firebot runs the code in your host enviornment, that may work. However if Firebot is running it in a less sketchy isolated enviornment, access to these libraries may not be available.
 
-Finally Firebot allows you to issue an HTTP request to a website. This is likely the most viable option as it both allows for the use of Cloud based TTS solutions but similarly allows us to set up our scripsts as a web server running in the background and constantly listening for new commands.
+#### Run A Full JavaScript Script
+
+Buildinh on that, it is also possible to provide Firebot with a complete custom script to run in response to an event. Allowing for more code does enable larger and more complex functionality, however, these scripts may still be limited by the execution enviornment they run in.
+
+#### Run A Program
+
+Outside of JavaScript, Firebot can also launch and run an application. This means it would be possible to use a different language such as python to handle the TTS. This would remove the potential enviornment issues as the program is gaurenteed to be running on your host enviornment. The down side is it would require launching the application for every event. Depending on the size and complexity of the program, that could be annoying/laggy/resource intensive
+
+#### Send an HTTP Request
+
+The final possible approach Firebot offers is custom HTTP requests. This would allow you to set up any application as a server that just sits in the background waiting for events to handle. This cuts out the repeated start up and tear down cost of the previous model. Similarly it also opens up the option to use cloud based solutions as well.
 
 ## Directory Structure
 ## Data
 
-The data directory holds some test file used to experiment with the different TTS systems. All the tests were derived from both the Noita and Valheim streams where the initial stream TTS was introduced. The full chat transcripts for each stream are labeled with their respective game, the tag "raw", and the date of the stream (i.e., `noita_raw_8_9_26.csv`). These files were then cleaned to remove unnecessary columns from the table. The resulting data was saved using the "cleaned" tag (`noita_cleaned_8_9_26.csv`). We base our test data off these streams as chat was intentionally trying to break the system during stream. As such, these files provide a good collection of messages to stress test any engine and see how it performs. Similarly, by using prior streams' chats, we have a baseline to compare the TTS behavior to.
+The data directoy holds test files I used to experiment with the different TTS systems. For the most part, the test data is based on the two streams where proto-tts was introduced. I use these streams as a baseline since chat was already working very hard to break the program. As such, it gives me a good mix of odd/edge case messages to push the models. At time of writing, the availble files are as follows:
 
-These files were also distilled into smaller collections of messages to make testing easier. At time of writing, the only derived file is `sampler.csv`. Also note that the last time I looked at sampler, the file seemed pretty and we are not sure why.
+- noita_cleaned_8_9_26.csv - A chat transcipt from the Noita stream where the proto-tts tool was introduced with unneeded columns removed
+- noita_raw_8_9_26.csv - The full chat transcript from the Noita stream on 8/9/26
+- ostrich_2.wav - A recording of my voice to provide additional training data when testing voice cloning models
+- ostrich.wav - A recording of my voice for testing voice cloning models
+- sampler.csv - A condensed file of 160ish messages from both streams to provide a easier and quicker way to stress test the models
+- valheim_cleaned_8_10_26.csv - A chat transcript from the Valheim stream featuring proto-tts with unneeded columns removed
+- valheim_raw_8_10_26.csv - The full chat transcript from the Vlaheim stream on 8/10/26
+
+**NOTE:** The data directory is encrypted to protect everyones privacy.
 
 ## JavaScript and Node.JS
+
+TODO
+
 ## Python
 
 In this section, we discuss all python based TTS packages that we tests
@@ -108,6 +135,126 @@ Another nuetral/slightly positive thing is that the package lets you define cust
 #### Documentation
 
 [gTTS docs](https://gtts.readthedocs.io/en/latest/index.html)
+
+### Coqui  TTS
+
+[Coqui TTS](https://pypi.org/project/coqui-tts/) is a large repository of AI TTS models. Coqui comes with support for up to 70 pretrained models based on different spectogram models and vocoders. On top of this, a subset of modules also support the option of voice cloning. Along with this, the library comes with all the tools/harnesses needed to build your own datasets and train your own models from them.
+
+Looking at Coqui, I have many open questions. The most glaring issue is licensing. So Coqui was apparently, at least in part, originally  developed by the creator of Mozilla's TTS engine and went off to make Coqui the company. However, it seems that original company was shutdown at the end of 2023, leaving the project abondoned starting early 2024([source](https://medium.com/@sudeshnm/coqui-tts-deep-dive-into-an-open-source-text-to-speech-framework-129c76a66580)). However, it seems that Coqui the company is back and now offering their services through a monthly license and tokens/credits ([source](https://coquitts.com/pricing)). The important thing to note is you only get commercial rights if you pay them. Interestingly though, the Coqui TTS repository and python package are both still readily available and free to use. That said, upon installing the package and using it for the first time it will prompt you as to whether you have a liscense or agree to the company's non-commercial license. However, even then, the link the provide is to a page that doesn't exist but can be found on the wayback machine [here]() (TODO: Add link when no longer getting a 503 error from the wayback machine). So ultimately it is unclear to me whether the library is open source and can be used. While I would err on the side of caution, I still played with it anyway.
+
+Another open question is training. So one nice thing about the library is that models are downloaded to your device. In theory, that means any data you use for testing should stay on your device and be private. Does that mean that cant be secretly exfiltrating it in the background? No, not at all, but it is better than some. 
+
+#### Running the demo
+
+Installing Coqui is a bit more involved than some of the other libraries. First, Coqui relies on pytorch for many of its operations. As such, you will need to install the `torch`, `torchaudi`, and `torchcodec` packages
+
+```
+python3 -m pip install torch torchaudio torchcodec
+```
+**NOTE:** The documentation also includes the option `--torch-backend=auto`. This was not valid on my device so I left it out
+
+Next, we need to install the library. As we are playing around with all the models just to test them, we need to install all the different language dependencies as well. To achieve both, run:
+
+```
+python3 -m pip install coqui-tts[languages]
+```
+
+This will install the library and its (many) dependencies. Finally, I once again use the `csv` and `playsoud3` packages for the demo. If not installed already, they can be installed with the following command:
+
+```
+python3 -m pip install csv playsound3
+``` 
+Once installed, run the demo as follows:
+
+```
+python3 coqui_tts_demo.py
+```
+
+Given the number of models offered, the program will first ask you which model you would like to use and then proceed to setup the file for that model. Once loaded, the program will loop as with previous demos. Similarly all available commands can be shown by entering the help command. To change models you must restart the program.
+
+#### Local Storage
+
+One nice thing about the package is models are downloaded to your system so operations are handled locally. That said, if you would like to remove them, default install locations can be found [here](https://coqui-tts.readthedocs.io/en/latest/faq.html). For ease:
+
+- Linux: `~/.local/share/tts`
+- Mac: `~/Library/Application Support/tts`
+- Windows: `C:\Users\<user>\AppData\Local\tts`
+
+#### Troubleshooting
+
+When setting up the demo I encountered two errors. First when using glowTTS (I believe) I got an import error stating that something cannot be imported from the "transformers" file.
+
+<p align="center"><img src="img/transformers.png"></p>
+
+This seems to be an issue with the current branch of the library. If you ecounter this issue, simply roll back the transformers library to version 5.0.0 ([source](https://github.com/idiap/coqui-ai-TTS/issues/558)). To do this, run:
+
+```
+python3 -m pip install transformers==5.0.0
+```
+
+Along with this, when testing with the tortoise model, I saw errors related to the `FFmpeg` library/format. I sadly forgot to grab a screenshot. `FFmpeg` is a pre-requisite for torchcodec and in my case was not installed. To fix this, install `FFmpeg`. On Ubuntu this can be done as follows:
+
+```
+sudo apt-get install ffmpeg
+```
+
+#### Thoughts
+
+I have a lot of thoughts when it comes to this system. I already stated my concerns about licensing in the start of the section so I will not repeat myself here. Similarly, I mentioned that it seems like your data never leaves the machine and thats a plus, however, it is unclear how the pretrained models were originally trained. 
+
+Before getting into too much of the minutia of this library, lets start with the positives. One of the biggests pluses to this library is just the sheer number of models and voice profiles available to the user. In theory, this gives you alot of options to best fit the TTS to your use case. Further, some models offer voice cloning if you wanted to make custom profiles. Along with this, as models are downloaded to your device, it removes any latency that comes from interacting with a cloud based service. 
+
+However, for as nice as it is to have multiple models and voices to choose from, the library is complicated. Coqui does provide documentation on how to use a model and on its own that is fairly simple. The issue is that different models require slightly different parameters to use and those differences are not really explained. Similarly, much of the library is not talked about. While Coqui provides documentation about what each model is and some of the provided submodules and calls, there is no full documentation (that I could find) for the library. As such, it is unclear what function calls are availble to the user and what the different options that can be supplied to them. This makes it a bit harder to customize/tailor to ones needs.
+
+Another concerning issue was the speed of the model. As these are all deep learning based, they are heavier to run. Due to this, there was a noticable pause between test messages that ranged from a few seconds to minutes. Therefore, Im not sure if these models could be used for TTS as is intended with chat. That said, these delays are model dependent. I should alos note that it wasn't just the model that was slow. The initial startup of the program and loading of the model also take some time. As such, this could never act as an application open per event and could only ever be viable as a server open in the background.
+
+With that regard, there are too many modules for me to test them all. Instead I targeted the following 5
+
+#### XTTS_v2
+
+Interstingly this seems to be Coqui's flagship model based on that new company page. That said, it is an interesting case. XTTS is a multilingual model meaning the same model can handle several language (as compared to other systems that have a unique model per language) and comes with 58 different voices to choose from. Similarly, XTTS allows you to clone custom voices to use. For my tests, I used voice 51 Wulf.
+
+Given it is a multilingual model, it was able to voice foriegn charactes (Japanese in this case) with ease. However, the model struggled on other special charaters. Namely, the model just straight up ignored things like the trademark symbol or heart characte present in several messages. Further, some emojis like the pregnant man emoji were misinterprested as another encoding resulting in foriegn characters being read.
+
+Along with this the system struggled with longer messages (a recurring theme among models). For long messages, the model would often start off fine but quickly degrade and then stop talking all together. Along with this, the XTTS model has a built in character limit of 250 charaters causing some messages to be skipped entirely. The one positive to this is that the model could get unstable leading to weird results like the good old tts experiments from a few years ago. While funny, I dont think it outweighs the bad.
+
+The biggest nail in the coffin is that its slow. For a small message, the model took 10~15 seconds to generate the audio and play it. Then as messages got longer, this time increased. Due to this, I was only able to run 30 messages of my 160 message test file. 
+
+One final thing to note is that this is one of the models that supports voice cloning. In my opinion, I think the model did okay at replicating my voice from about 8 minutes of me rambling. That said, while the voice was okay, the cadence was pretty off. Messages were read very akwardly with odd pacing that at some point reminded me of the G-Man, but more often than not made me sound deranged. Now both the voice and cadence issue may be improved with additional training data, but I dont know.
+
+#### Tortoise
+
+Tortoise is another model that allows for voice cloning but only comes with a single defualt voice. Tortoise had a great start to its test by completely crashing my device, though that was likely due to all my work stuff sitting open in the background. One restart later and everything was fine. 
+
+As for the actual testing, this model suffered much worse from being slow. Even short messages took forever to process. In about 20~25 minutes while I was writing documentation, the test got through about 15 messages. Again, we saw the pattern where the longer a message, the longer the wait time. However, despite this increased wait, this model was also unable to read long messages, dying halfway through if not sooner. On top of this, the model seemed unable to handle the special charaters it encountered. I finally aborted the test after half an hour.
+
+The voice cloning was arguable my favorite of the three models that could do it. In my small scale testing the voice clone did seem a bit more variable with some messages sounding decently like me and others being far off. What won me over as compared to XTTS was that (of the three otpions), Tortoise seemed to have the most natural sounding tone and cadence to messages.
+
+#### Bark
+
+The last of the voice cloning models and a special case. Bark is a multilingual model, unless you are using voice clones, then its single. This flip floppy nature of the model made it frustrating to use. That said, what actually killed the model was its processing time. In small scale testing, Bark took drastically longer to process and play audio than tortoise did. For this reason, I did not even try to test the model against my test files.
+
+Another reason for that decision was the voice clone. Right off the bat, unlike the other models which allowed you to supply multiple files for training, Bark only allowed for a single file. However, once trained, the model was nowhere close to my voice and often changed voices rapidly within a single sentence. During my first test message, the model cycled through three distinct voices. Along with this, the model was so unstable that it would stumble over messages so bad it added words to the message. Due to this, I deemed it not worth testing further. I will note, that maybe I messed up or it was something with my device and you may have a better time with it than I
+
+#### Tacotron2_DDC
+
+Tackotron2_DCC is a fairly straight forward model with only a single voice to use. Given this simplicity as compared to other models, tacotron did run much faster. That said, there were still a couple seconds between small messages and longer processing times for big messages.
+
+What tacotron made up for in speed, it lost in ability. Tacotron was unable to handle most special charaters including things like "=", "*", "@", and even " itself. Tactron also failed to parse other special charcters like the trademark symbol, foriegn characters, and emojis. Instead, these characters were skipped resulting in piece meal messages being read.
+
+One final positive not really positive was when it came to long strings of vowels it became very weird. Fun weird, but probably not the best for a functional system.
+
+#### GlowTTS
+
+GlowTTS is another simple model with a single default voice. Of all the models tests, GlowTTS was the fastest. During testing, messages seemed to be played instantly with no noticable difference for longer messages. Similarly, this model was able to completely handle test messages provided regardless of size. I will note, there may be a point where it will also give up. I aslo did not test the full sample file to keep in step with the other models tested in the library.
+
+That said, the increased speed came at the cost of quality. The default voice is very robitic. That on its own isnt a problem, but it is very sharp and crackly making it not fun to listen to. Similarly, the model is just awful at pronouncing things. Add on to thiss the common theme of skipping emojis and forigen charaters and the model seems to be more bad than good.
+
+#### Documentation
+
+[github](https://github.com/coqui-ai/tts)
+
+[Documentation](https://coqui-tts.readthedocs.io/en/latest/index.html)
 
 ## Cloud
 ## Other
