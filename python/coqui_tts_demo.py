@@ -3,7 +3,7 @@ import torch
 import playsound3
 from TTS.api import TTS
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-HELP = "\nAvailable commands:\n\thelp (h) - Lists the known commands and what they do\n\tlist (l) - Displays all the voice profiles a model supports and their indicies\n\tvoice # (v #) - Selects the provided voice profile to use by the profile's index. Refer to the list command on how to find the index of a voice\n\tfile filename (f filename) - Load test messages from the provided file and run them through the TTS engine. \033[33mWarning:\033[0m Given the slow processing times of these models, large files are not recommended\n\tsay text (s text) - Have the TTS engine play the supplied text"
+HELP = "\nAvailable commands:\n\thelp (h) - Lists the known commands and what they do\n\tlist (l) - Displays all the voice profiles a model supports and their indices\n\tvoice # (v #) - Selects the provided voice profile to use by the profile's index. Refer to the list command on how to find the index of a voice\n\tfile filename (f filename) - Load test messages from the provided file and run them through the TTS engine. \033[33mWarning:\033[0m Given the slow processing times of these models, large files are not recommended\n\tsay text (s text) - Have the TTS engine play the supplied text"
 
 
 def print_speakers(speakers, clonable):
@@ -17,7 +17,7 @@ def print_speakers(speakers, clonable):
     """
     default = 1  # Sentinel for models with no speaker options
     if speakers is not None and len(speakers) > 0: 
-        default = 0  # if there are options, disable the defualt message
+        default = 0  # if there are options, disable the default message
         print("\nAvailable Voice Models (Index: Model):")
         i = 0
         for speaker in speakers:
@@ -75,7 +75,7 @@ def play(tts, message, multilingual, speaker, trained, training_data):
 
 def  play_from_file(filename, tts, multilingual, speaker, trained, training_data):
     """
-    Loads test messages from the supplied file and runs them trough the TTS engine
+    Loads test messages from the supplied file and runs them through the TTS engine
     params:
         filename (str) - The name of the test file
         tts (TTs.api.TTS.model?) - The TTS engine being used
@@ -210,7 +210,7 @@ def main():
                     training_data = input("Enter a comma seperated list of training files to use for the clone: ").strip().split(",")
                     for i in range(len(training_data)):  # Clean the filenames
                         training_data[i] = training_data[i].strip()
-                else:  # A new caveat is to blank out the name to use the defualt in some cases
+                else:  # A new caveat is to blank out the name to use the default in some cases
                     speaker = ""
             else:
                 print(f"\033[33mWarning:\033[0m Voice profiles are not supported by this model")
@@ -225,14 +225,14 @@ def main():
                  print(f"\033[31mError:\033[0m {e}")
         elif command[0] == "s" or command[0] == "say":
             try:
-                if "bark" in model and speaker == "voice_clone":  # Despite being labeled multilinqual this model apperently only is some of the time
+                if "bark" in model and speaker == "voice_clone":  # Despite being labeled multilingual, this model apparently only is some of the time
                     trained = play(tts, command[1].strip(), 0, speaker, trained, training_data)
                 else:
                     trained = play(tts, command[1].strip(), multilingual, speaker, trained, training_data)
             except Exception as e:
                 print(f"\033[31mError:\033[0m {e}")
         else:
-            print(f'Unknown command \"{command[0]}\". Run \"help\" (h) to see a list of available command or \"quit\" (q) to quit\n')
+            print(f'Unknown command \"{command[0]}\". Run \"help\" (h) to see a list of available commands or \"quit\" (q) to quit\n')
 
         command = input(f"\nCurrent settings:\n\tModel - {model}\n\tVoice - {speaker if speaker != "" else 'Default'}\nEnter a command to test Coqui (h for help, q to quit): ").strip().split(" ", 1)
         command[0] = command[0].lower().strip()
