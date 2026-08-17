@@ -270,7 +270,9 @@ SmallestAI is a subscription model and thus out of the running, I’d assume. At
 
 [Website](https://smallest.ai/)
 
+### Piper1-gpl
 
+Its functional, but Im tired so there is no documentation yet. You can get the gist from reading the file.
 
 
 
