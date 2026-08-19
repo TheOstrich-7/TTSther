@@ -272,7 +272,70 @@ SmallestAI is a subscription model and thus out of the running, I’d assume. At
 
 ### Piper1-gpl
 
-Its functional, but Im tired so there is no documentation yet. You can get the gist from reading the file.
+[Piper1-GPL](https://github.com/OHF-Voice/piper1-gpl/tree/main), or Piper, is a local TTS engine that uses the espeak-ng tool (TODO link to section when ready) to generate the phonemes for the engine. Piper comes with several voices that can be downloaded to your device and then used in the system. The library also allows you to train your own model and also contains a brief mention of matching audio to mouth movements along with a link to nightmares ([I hate it](https://github.com/aflr-archive/viseme-to-video)). Outside of that, the repository is very light on description for both the library itself and its available functionality.
+
+#### Running the Demo
+
+Installing Piper is relatively simple as it does not have any prerequisites (I think). So all you need to do is install the package:
+
+```
+pip3 install piper-tts
+```
+
+**Note:** I generally prefer using `python3 -m pip` for installation, but for me this was causing issues when trying to install the `lxml` library. Instead, I had to use pip3 directly. This is almost certainly an issue with my environment, but rather leave a note to be safe
+
+Outside of that, I again use the `csv` and `playsound3` packages for ease of testing. They can be installed (if not done so already) as follows:
+
+```
+python3 -m pip install playsound3 csv
+```
+
+Next, you will need to download a voice model to use. First, to list the available voices, open a terminal and run:
+
+```
+python3 -m piper.download_voices
+```
+
+Once you have found a voice that you like, rerun the command but this time include the desired voice profile:
+
+```
+python3 -m piper.download_voices <voice>
+```
+
+This will download a `.onnx` and a `.onnx.json` file to your current directory. Move this to the desired location on your system. Next, open the `piper1_demo.py` file and update the `VOICE` global varaible with the path to the `.onnx` file. **Note** that Python bases all file paths from your current directory. As such, it may be better to use the absolute path to the file to avoid confusion. Along with this, there is also a `CUDA` variable that can be changed to enable GPU processing if it is supported. It is off by default. Once configured, save the file and run:
+
+```
+python3 piper1_demo.py
+```
+
+Like the other files, this will open an interactive loop to play with the library. For available commands, enter `h`
+
+#### Model Configuration
+
+As I mentioned, the repository does not describe the available settings much. Due to this, here is my understanding from my experiments.
+
+- Volume - Self-explanatory, this controls the TTS volume. However, rather than providing a number like 50, it is expecting a scalar. That is to say, if you wanted the model to be twice as loud, you would enter the value `2.0` to multiply the base value by 2. Similarly, to make the model quieter, you set a scalar smaller than 1.
+- Rate - Again, a little self-explanatory, though the library actually refers to it as `length_scale`. Once again, it is a scalar where numbers larger than 1 increase the speed of the voice while those below 1 slow it down.
+- Audio Variance - This is where things get a little hand wavey. So officially this is listed as `noise_scale` and its only description is "more audio variation". From experiments, this scalar seems to control how unstable the TTS engine is, with values greater than 1 causing more variablility in how the message is read and voice sounds.
+- Speaker Variance - Labeled `noise_w_scale` by the library, it's described as "more speaking variation". When messing with it, I never really got a sense of what it did. At best, this setting may change how the voice pronounces words without changing the voice itself like Audio Variance does. However, I cannot be certain as any shifts in pronunciation were not that large. Along with this, setting the scalar to 2.0 seemed to break the voice.
+- Normalization - Actually referred to as `normalize_audio`, it is a boolean marking whether to clean the audio.
+
+
+#### Thoughts
+
+I tested the model with the `en_GB_jenny_diocro-medium` and `en_US_ryan-high` voices. For the most part, the library seemed pretty good. Most messages were read fine and with almost no downtime. Similarly, some of the quirks might be able to be suppressed by messing with the variance settings. It's also nice that the entirety of the model seems to be run locally. That said, I wish there was better documentation about the library. 
+
+So what are the quirks? Well, the model seems to break down in two main cases. First, when doing spammy messages like "rrrrrrrrrrrrrrrrrrrrrrrrr" or "awawawawawawawawawawa" cause it to start just making sounds. While funny, the probelm is it breaks the whole message. So any other information in the message, such as who said it ("user x says"), is completely lost.
+
+The second case is long messages. If a message is too long, the model can similarly become unstable, with the model seeming to slur words together and become less coherent over the course of the message. I'm not sure if this is tied solely to message length but also the complexity of the message. Along with this, some long messages also take a couple seconds to be processed. I believe this is also affected by how many odd symbols are in a message the system doesn't know how to handle.
+
+As for symbol recognition, the model did okay. Piper seemed to be able to read several emojis and symbols, but not all of them. It was unable to parse Japanese, simply stating "Japanese character", and for many emojis/symbols it just read out the Unicode for it. Weirdly, this also sometimes made the voice a bit wobbly.
+
+As one final note, these problems become worse when using the raw audio.
+
+#### Documentation
+
+[What little documentation there is](https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/API_PYTHON.md)
 
 
 
@@ -293,9 +356,8 @@ JS
         https://developer.puter.com/tutorials/free-unlimited-text-to-speech-api/
 
 Pyhton
-    larynx/piper
+    larynx
         https://github.com/rhasspy/larynx
-        https://github.com/OHF-Voice/piper1-gpl
     edge_tts
         https://medium.com/@tayeblagha/%EF%B8%8F-building-a-text-to-speech-tts-gui-with-python-61e83550ee19
     
