@@ -1,0 +1,16 @@
+{
+    "MODELS": ["HuggingFace v1.0", "HuggingFace v1.1-zh", "GitHub v1.0", "GitHub v1.1-zh"],
+    "MODEL_VALUES": [["huggingface", "v1.0"], ["huggingface", "v1.1-zh"], ["github", "v1.0"], ["github", "v1.1-zh"]],
+    "MODEL_QUALITY": {
+        "huggingfacev1.0": ["fp32", "fp16", "q8", "q8f16", "q4", "q4f16", "uint8", "uint8f16"],
+        "huggingfacev1.1": ["fp32", "fp16", "q8", "q8f16", "q4", "q4f16", "uint8", "uint8f16"],
+        "githubv1.0": ["fp32", "fp16", "fp16-gpu", "q8"],
+        "githubv1.1": ["fp32"]
+    }, 
+    "VOICES": {
+        "v1.0": ["af_heart", "af_alloy", "af_aoede", "af_bella", "af_jessica", "af_kore", "af_nicole", "af_nova", "af_river", "af_sarah", "af_sky", "am_adam", "am_echo", "am_eric", "am_fenrir", "am_liam", "am_michael", "am_onyx", "am_puck", "am_santa", "bf_alice", "bf_emma", "bf_isabella", "bf_lily", "bm_daniel", "bm_fable", "bm_george", "bm_lewis", "jf_alpha", "jf_gongitsune", "jf_nezumi", "jf_tebukuro", "jm_kumo", "zf_xiaobei", "zf_xiaoni", "zf_xiaoxiao", "zf_xiaoyi", "zm_yunjian", "zm_yunxi", "zm_yunxia", "zm_yunyang", "ef_dora", "em_alex", "em_santa", "ff_siwis", "hf_alpha", "hf_beta", "hm_omega", "hm_psi", "if_sara", "im_nicola", "pf_dora", "pm_alex", "pm_santa"],
+        "v1.1-zh": ["af_maple.pt", "af_sol.pt", "bf_vale.pt", "zf_001.pt", "zf_002.pt", "zf_003.pt", "zf_004.pt", "zf_005.pt", "zf_006.pt", "zf_007.pt", "zf_008.pt", "zf_017.pt", "zf_018.pt", "zf_019.pt", "zf_021.pt", "zf_022.pt", "zf_023.pt", "zf_024.pt", "zf_026.pt", "zf_027.pt", "zf_028.pt", "zf_032.pt", "zf_036.pt", "zf_038.pt", "zf_039.pt", "zf_040.pt", "zf_042.pt", "zf_043.pt", "zf_044.pt", "zf_046.pt", "zf_047.pt", "zf_048.pt", "zf_049.pt", "zf_051.pt", "zf_059.pt", "zf_060.pt", "zf_067.pt", "zf_070.pt", "zf_071.pt", "zf_072.pt", "zf_073.pt", "zf_074.pt", "zf_075.pt", "zf_076.pt", "zf_077.pt", "zf_078.pt", "zf_079.pt", "zf_083.pt", "zf_084.pt", "zf_085.pt", "zf_086.pt", "zf_087.pt", "zf_088.pt", "zf_090.pt", "zf_092.pt", "zf_093.pt", "zf_094.pt", "zf_099.pt", "zm_009.pt", "zm_010.pt", "zm_011.pt", "zm_012.pt", "zm_013.pt", "zm_014.pt", "zm_015.pt", "zm_016.pt", "zm_020.pt", "zm_025.pt", "zm_029.pt", "zm_030.pt", "zm_031.pt", "zm_033.pt", "zm_034.pt", "zm_035.pt", "zm_037.pt", "zm_041.pt", "zm_045.pt", "zm_050.pt", "zm_052.pt", "zm_053.pt", "zm_054.pt", "zm_055.pt", "zm_056.pt", "zm_057.pt", "zm_058.pt", "zm_061.pt", "zm_062.pt", "zm_063.pt", "zm_064.pt", "zm_065.pt", "zm_066.pt", "zm_068.pt", "zm_069.pt", "zm_080.pt", "zm_081.pt", "zm_082.pt", "zm_089.pt", "zm_091.pt", "zm_095.pt", "zm_096.pt", "zm_097.pt", "zm_098.pt", "zm_100.pt"]    
+    },
+    "LANGUAGES": ["American English", "British English", "Spanish", "French", "German", "Italian", "Brazilian Portuguese", "Hindi", "Japanese", "Mandarin Chinese"],
+    "LANGUAGE_CODES": ["en-us", "en-gb", "es", "fr", "de", "it", "pt", "hi", "ja", "zh"]
+}

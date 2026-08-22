@@ -338,6 +338,16 @@ As one final note, these problems become worse when using the raw audio.
 [What little documentation there is](https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/API_PYTHON.md)
 
 
+### Kokoro
+
+Oh this is a both complicated and suprisingly clean. Also the My Neighbor Totoro theme is stuck in my head. 
+
+- descrepencies in docs
+- manual spacy installs
+- voices and their rankings
+- advanced features
+
+
 
 ## Cloud
 ## Other
@@ -394,3 +404,20 @@ general
     https://www.reddit.com/r/learnmachinelearning/comments/1gbrbtm/free_humanlike_texttospeech_using_python_a_great/
     https://dev.to/mr_nova/text-to-speech-with-python-a-beginners-guide-to-pyttsx3-2pie
     https://picovoice.ai/blog/on-device-text-to-speech-in-python/
+
+
+https://medium.com/@tayeblagha/%EF%B8%8F-building-a-text-to-speech-tts-gui-with-python-61e83550ee19
+https://github.com/rany2/edge-tts
+https://github.com/rany2/edge-tts/tree/master/examples
+https://github.com/rany2/edge-tts/blob/master/src/edge_tts/util.py
+https://edge-tts.com/
+https://pypi.org/project/edge-tts-ext/
+https://pypi.org/project/edge-tts/
+
+https://pypi.org/project/pykokoro/
+https://github.com/buchwandler/pykokoro
+https://pykokoro.readthedocs.io/en/latest/index.html
+https://huggingface.co/hexgrad/Kokoro-82M#model-facts
+https://github.com/hexgrad/kokoro
+https://pypi.org/project/kokoro/
+https://github.com/hexgrad/kokoro
