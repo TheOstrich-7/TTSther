@@ -348,6 +348,10 @@ Oh this is a both complicated and suprisingly clean. Also the My Neighbor Totoro
 - advanced features
 
 
+notes:
+- slow message generation or just initial install? 
+  - seems like the bulk was the initial but still seems to have slight delay
+
 
 ## Cloud
 ## Other
