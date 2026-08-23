@@ -346,12 +346,25 @@ Oh this is a both complicated and suprisingly clean. Also the My Neighbor Totoro
 - manual spacy installs
 - voices and their rankings
 - advanced features
+- weird install warnings
+
 
 
 notes:
 - slow message generation or just initial install? 
   - seems like the bulk was the initial but still seems to have slight delay
-
+  - may be issues with my gpu
+- voices from other languages can handle english but I dont think they are meant to
+  - italian pronounces things the italian way
+  - pyopenjtalk and its in japanese
+  - v 1.1 may not be worth it then
+  - github v1.0 voice list wrong
+- quality
+  - small scale, sound indistiguishable for the most part. May be more noticable on the test corpus
+  - natural variance
+- github models dont want to work
+  - v1.1 tensor(int32) Invalid argument
+- language only important for models trained on a different language
 
 ## Cloud
 ## Other

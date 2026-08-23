@@ -3,7 +3,6 @@ import json
 import playsound3
 import pykokoro
 import soundfile
-import torch
 """
 degrees of freedom/features
     voices
@@ -21,7 +20,19 @@ degrees of freedom/features
 
 
 def init():
-
+    """
+    A function to initialize several variables used by the demo. Mainly, it loads a
+      bunch of strings and lists from a file for convience and keeping things slightly
+      cleaner
+    returns:
+        value_json["MODELS"] (list(str)) - A list of the pretty print version of available models
+        value_json["MODEL_VALUES"] (list((str,str))) - A list of (model, version) pairs for easier processing
+        value_json["MODEL_QUALITY"] (dict(str,list(str))) - A dictionary of the supported model quality for each available model
+        value_json["VOICES"] (dict(str,list(str))) - A dictionary of available voices for each model version
+        value_json["LANGUAGES"] (str) - A formated string listing the available language options
+        value_json["LANGUAGE_CODES"] (list(str)) - A list of supported languages' language codes
+        value_json["PAUSE_MODES"] (str) - A formated string of TTS pause options
+    """
     with open("kokoro_helper.json", "r") as ifp:
         value_json = json.load(ifp)
 
@@ -29,6 +40,13 @@ def init():
     
 
 def print_models(models):
+    """
+    A function to display the available models to the user
+    params:
+        models (list(str)) -  A list of models to display
+    returns:
+        None
+    """
     print("\nSupported Kokoro models:")
 
     i = 0
@@ -40,6 +58,15 @@ def print_models(models):
 
 # TODO add voice blending
 def print_voices(version, voice_list):
+    """
+    A function to display the available voice profiles for the user
+    params:
+        version (str) - The model version selected
+        voice_list (dict(str,list(str))) - A dictionary mapping model versions to their
+          supported voice profiles
+    returns: 
+        None
+    """
     print(f"\nSupported voice profiles for {version} models:")
 
     i = 0 
@@ -54,13 +81,43 @@ def print_voices(version, voice_list):
 
 # TODO Spacy
 def print_config(model, version, quality, voice, language, speed, pause_mode, clause, sentence, paragraph, variance, seed, short, trim):
-     print("\nCurrent Kokoro Configuration:")
-     print(f"\tPipeline Configuration:\n\t\tModel: {model} {version}\n\t\tModel Quality: {quality}\n\t\tVoice: {voice}")
-     print(f"\n\tGenerator Configuration:\n\t\tLanguage: {language}\n\t\tSpeed: {speed}\n\t\tPause Mode: {pause_mode}\n\t\tClause Pause Length: {clause}\n\t\tSentence Pause Length: {sentence}\n\t\tParagraph Pause Length: {paragraph}\n\t\tPause Variance: {variance}\n\t\tRandom Seed: {"Unset" if seed is None else seed}\n\t\tShort Sentence Handling: {"Default to PipelineConfig" if short is None else short}")
-     print(f"\n\tTrim Audio: {trim}\n")
+    """
+    A function to display the current value of all configuratble settings to the user
+    params:
+        model (str) - The Kokoro model currently selected/being used
+        version (str) - The version of the model being used
+        quality (str) - The model quality selected
+        voice (str) - The voice profile being used for the TTS engine
+        language (str) - The current input text language set for the system
+        speed (float) - A scalar representing the models rate of speech
+        pause_mode (str) - The currently chosen algorithm used to add pauses to TTS messages
+        clause (float) - How long to pause after a cluase
+        sentence (float) - How long the model should pause at the end of a sentence
+        paragraph (float) - How long the model should pause at the end of a paragraph
+        variance (float) - Guassian variance setting added to pauses to make them feel more natural
+        seed (int) - The current random seed being used to generate pause variance
+        short (boolean) - Whether to allow/override short sentence handling in the model
+        trim (boolean) - Whether the audio should be trimmed to remvove silence around pauses
+    returns:
+        None
+    """
+    print("\nCurrent Kokoro Configuration:")
+    print(f"\tPipeline Configuration:\n\t\tModel: {model} {version}\n\t\tModel Quality: {quality}\n\t\tVoice: {voice}")
+    print(f"\n\tGenerator Configuration:\n\t\tLanguage: {language}\n\t\tSpeed: {speed}\n\t\tPause Mode: {pause_mode}\n\t\tClause Pause Length: {clause}\n\t\tSentence Pause Length: {sentence}\n\t\tParagraph Pause Length: {paragraph}\n\t\tPause Variance: {variance}\n\t\tRandom Seed: {"Unset" if seed is None else seed}\n\t\tShort Sentence Handling: {"Default to PipelineConfig" if short is None else short}")
+    print(f"\n\tTrim Audio: {trim}\n")
 
 
 def print_quality(model, version, qualities):
+    """
+    A function to display the available model qualities for a given model to the user
+    params:
+        model (str) - The current model selected/being used
+        version (str) - THe current version of the model used in the demo
+        qualities (dict(str,list(str))) - A dictionary mapping the availble model qualities to 
+          each of the possible model combinations
+    returns:
+        None
+    """
     print(f"{qualities["key"]}\n\nAvailable model quality for {model} {version}:")
 
     i = 0
@@ -72,14 +129,22 @@ def print_quality(model, version, qualities):
 
 
 def play(message, pipeline):
+    """
+    A function to convert the supplies message to audio using the TTS engine provided
+    params:
+        message (str) - The text to convert to audio
+        pipeline (pykokoro.KokoroPipeline?) - The pipeline used to generate the audio
+    """
     audio = pipeline.run(message)
     soundfile.write("kokoro_temp.wav", audio.audio, audio.sample_rate)
-
     playsound3.playsound("kokoro_temp.wav")
 
-    
 
 def main():
+    """
+    The main function responsible for accepting user input and allowing the user to interactively
+      test the Kokoro package
+    """
     # Load the possible setting values for ease and cleanliness
     model_names = model_tokens = qualities = voices = languages = language_codes = pause_modes = 0
     model_names, model_tokens, qualities, voices, languages, language_codes, pause_modes = init()
@@ -90,7 +155,7 @@ def main():
     model_index = -1
     print_models(model_names)
     while model_index < 0:
-        try:
+        try:  # With each file, I end up add more and more appropriate safety measures
             model_index = int(input("Please select a model index to use: ").strip())
             current_model = model_tokens[model_index][0]
             current_version = model_tokens[model_index][1] 
@@ -100,6 +165,11 @@ def main():
             model_index = -1
             print(f"\033[31mError:\033[0m {ie}\n Please select a valid model\n")
 
+        """
+        I had issues with the GitHub models. However its hard to say if thats a vald error 
+          or meerly an issue on my environment. As such, I leave the option open for others to
+          experiment with
+        """
         if current_model == "github":
             print("\033[33mWARNING:\033[0m In our testing neither github variant functioned properly\n")
 
@@ -109,15 +179,16 @@ def main():
     voice_index = -1
     print_voices(current_version, voices)
     while voice_index < 0:
-            try:
-                voice_index = int(input("Please select a voice index to use: ").strip())
-                current_voice = voices[current_version][voice_index] 
-            except ValueError:
-                print(f"\033[31mError:\033[0m Please enter a valid number\n")
-            except IndexError as ie:
-                voice_index = -1
-                print(f"\033[31mError:\033[0m {ie}\n Please select a valid voice\n")
+        try:
+            voice_index = int(input("Please select a voice index to use: ").strip())
+            current_voice = voices[current_version][voice_index] 
+        except ValueError:
+            print(f"\033[31mError:\033[0m Please enter a valid number\n")
+        except IndexError as ie:
+            voice_index = -1
+            print(f"\033[31mError:\033[0m {ie}\n Please select a valid voice\n")
 
+    # Output to help keep people in the office
     print("\nInitializing TTS engine: ", end="")
     # TODO double check trim and short sentences
     # TODO Spacy
@@ -136,7 +207,6 @@ def main():
     enable_short_sentence = None
     trim_audio = False
     update_generator = update_pipeline = 0
-
     generator_config = pykokoro.GenerationConfig(speed=current_speed,
                                                  lang=current_language,
                                                  pause_mode=current_pause_mode,
@@ -153,14 +223,15 @@ def main():
 
     # Finally start the engine
     pipeline = pykokoro.KokoroPipeline(pipeline_config)
-    print("\033[32mComplete\033[0m")
+    print("\033[32mComplete\033[0m")  # Sanity output
 
+    # Finally time for experiments
     full_command = input("Enter a command to test Kokoro (h for help, q to quit): ").strip()
     command_tokens = full_command.split(" ", 1)
     command = command_tokens[0].strip().lower()
     while command != "q" and command != "quit":
         if command == "h" or command == "help":
-            pass
+            pass # TODO make help message
         elif command == "c" or command == "config":
             print_config(current_model, current_version, current_quality, current_voice, 
                          current_language, current_speed, current_pause_mode, 
@@ -169,11 +240,11 @@ def main():
                          enable_short_sentence, trim_audio)
         elif command == "m" or command == "model":
             print_models(model_names)
-            try:
+            try:  # attempt to change models
                 model_index = int(input("Please select a model index to use: ").strip())
                 temp_model = model_tokens[model_index][0]
                 temp_version = model_tokens[model_index][1] 
-            except ValueError:
+            except ValueError: # Ensure the w
                 print(f"\033[31mError:\033[0m Please enter a valid number\n")
             except IndexError as ie:
                 print(f"\033[31mError:\033[0m {ie}\n Please select a valid model\n")
