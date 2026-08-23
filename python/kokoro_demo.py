@@ -32,11 +32,14 @@ def init():
         value_json["LANGUAGES"] (str) - A formated string listing the available language options
         value_json["LANGUAGE_CODES"] (list(str)) - A list of supported languages' language codes
         value_json["PAUSE_MODES"] (str) - A formated string of TTS pause options
+        value_json["SPACY_MODES"] (str) - A formated string of Spacy model sizes to chose from
+        value_json["SHORT_MODES"] (str) - A formated string of Short Sentence Handling resolvers
+        value_json["HELP"] (str) - A formatted help message for the available commands
     """
     with open("kokoro_helper.json", "r") as ifp:
         value_json = json.load(ifp)
 
-    return value_json["MODELS"], value_json["MODEL_VALUES"], value_json["MODEL_QUALITY"], value_json["VOICES"], value_json["LANGUAGES"], value_json["LANGUAGE_CODES"], value_json["PAUSE_MODES"]
+    return value_json["MODELS"], value_json["MODEL_VALUES"], value_json["MODEL_QUALITY"], value_json["VOICES"], value_json["LANGUAGES"], value_json["LANGUAGE_CODES"], value_json["PAUSE_MODES"], value_json["SPACY_MODES"], value_json["SHORT_MODES"], value_json["HELP"]
     
 
 def print_models(models):
@@ -56,7 +59,7 @@ def print_models(models):
     print()
 
 
-# TODO add voice blending
+
 def print_voices(version, voice_list):
     """
     A function to display the available voice profiles for the user
@@ -79,8 +82,7 @@ def print_voices(version, voice_list):
     print()
 
 
-# TODO Spacy
-def print_config(model, version, quality, voice, language, speed, pause_mode, clause, sentence, paragraph, variance, seed, short, trim):
+def print_config(model, version, quality, voice, language, speed, pause_mode, clause, sentence, paragraph, variance, seed, short, spacy, short_conf):
     """
     A function to display the current value of all configuratble settings to the user
     params:
@@ -97,14 +99,15 @@ def print_config(model, version, quality, voice, language, speed, pause_mode, cl
         variance (float) - Guassian variance setting added to pauses to make them feel more natural
         seed (int) - The current random seed being used to generate pause variance
         short (boolean) - Whether to allow/override short sentence handling in the model
-        trim (boolean) - Whether the audio should be trimmed to remvove silence around pauses
+        spacy (str) - The current Spacy model size
+        short_conf (pykokoro.short_sentence_handler.ShortSentenceConfig) - The current short sentence handling configuration
     returns:
         None
     """
     print("\nCurrent Kokoro Configuration:")
-    print(f"\tPipeline Configuration:\n\t\tModel: {model} {version}\n\t\tModel Quality: {quality}\n\t\tVoice: {voice}")
+    print(f"\tPipeline Configuration:\n\t\tModel: {model} {version}\n\t\tModel Quality: {quality}\n\t\tVoice: {voice}\n\t\tShort Sentence Configuration:\n\t\t\tMinimum Phoneme Length: {'None' if short_conf is None else short_conf.min_phoneme_length}\n\t\t\tResolver: {'None' if short_conf is None else short_conf.resolve_mode}")
     print(f"\n\tGenerator Configuration:\n\t\tLanguage: {language}\n\t\tSpeed: {speed}\n\t\tPause Mode: {pause_mode}\n\t\tClause Pause Length: {clause}\n\t\tSentence Pause Length: {sentence}\n\t\tParagraph Pause Length: {paragraph}\n\t\tPause Variance: {variance}\n\t\tRandom Seed: {"Unset" if seed is None else seed}\n\t\tShort Sentence Handling: {"Default to PipelineConfig" if short is None else short}")
-    print(f"\n\tTrim Audio: {trim}\n")
+    print(f"\n\tSpacy Model Size: {spacy}")
 
 
 def print_quality(model, version, qualities):
@@ -134,6 +137,8 @@ def play(message, pipeline):
     params:
         message (str) - The text to convert to audio
         pipeline (pykokoro.KokoroPipeline?) - The pipeline used to generate the audio
+    returns:
+        None
     """
     audio = pipeline.run(message)
     soundfile.write("kokoro_temp.wav", audio.audio, audio.sample_rate)
@@ -146,8 +151,8 @@ def main():
       test the Kokoro package
     """
     # Load the possible setting values for ease and cleanliness
-    model_names = model_tokens = qualities = voices = languages = language_codes = pause_modes = 0
-    model_names, model_tokens, qualities, voices, languages, language_codes, pause_modes = init()
+    model_names = model_tokens = qualities = voices = languages = language_codes = pause_modes = spacy_sizes = short_sentence_resolvers = help = 0
+    model_names, model_tokens, qualities, voices, languages, language_codes, pause_modes, spacy_sizes, short_sentence_resolvers, help = init()
 
     # Get the inital model to use
     current_model = ""
@@ -173,7 +178,6 @@ def main():
         if current_model == "github":
             print("\033[33mWARNING:\033[0m In our testing neither github variant functioned properly\n")
 
-    # TODO add voice blending
     # Grab the initial voice to use
     current_voice = ""
     voice_index = -1
@@ -190,14 +194,13 @@ def main():
 
     # Output to help keep people in the office
     print("\nInitializing TTS engine: ", end="")
-    # TODO double check trim and short sentences
-    # TODO Spacy
+
     # Initialize remianing configurable variables
     current_speed = 1.0
     current_quality = "fp32" if current_model == "github" and current_version == "v1.1-zh" else "q8"
     current_language = "en-us"
     current_spacy_size = "md"
-    current_short_sentence_conf = ""
+    current_short_sentence_conf = None
     current_pause_mode = "tts"
     current_clause_pause_len = 0.3
     current_sentence_pause_len = 0.6
@@ -205,7 +208,6 @@ def main():
     current_pause_variance = 0.05
     current_seed = None
     enable_short_sentence = None
-    trim_audio = False
     update_generator = update_pipeline = 0
     generator_config = pykokoro.GenerationConfig(speed=current_speed,
                                                  lang=current_language,
@@ -231,24 +233,25 @@ def main():
     command = command_tokens[0].strip().lower()
     while command != "q" and command != "quit":
         if command == "h" or command == "help":
-            pass # TODO make help message
+            print(help)
         elif command == "c" or command == "config":
             print_config(current_model, current_version, current_quality, current_voice, 
                          current_language, current_speed, current_pause_mode, 
                          current_clause_pause_len, current_sentence_pause_len, 
                          current_paragraph_pause_len, current_pause_variance, current_seed,
-                         enable_short_sentence, trim_audio)
+                         enable_short_sentence, current_spacy_size, current_short_sentence_conf)
         elif command == "m" or command == "model":
             print_models(model_names)
             try:  # attempt to change models
                 model_index = int(input("Please select a model index to use: ").strip())
                 temp_model = model_tokens[model_index][0]
                 temp_version = model_tokens[model_index][1] 
-            except ValueError: # Ensure the w
+            except ValueError:  # Did you actually give me a number?
                 print(f"\033[31mError:\033[0m Please enter a valid number\n")
-            except IndexError as ie:
+            except IndexError as ie:  # Is that number a valid index (i.e., is it actually in the list)? 
                 print(f"\033[31mError:\033[0m {ie}\n Please select a valid model\n")
 
+            # If we aren't actually changing anything, lets not actually take the time to update the config
             if temp_model != current_model or temp_version != current_version:
                 current_model = temp_model
                 current_version = temp_version
@@ -256,6 +259,7 @@ def main():
                 current_quality = "fp32" if current_model == "github" and current_version == "v1.1-zh" else "q8"
                 update_pipeline = 1
 
+                # You have been warned
                 print(f"Model Changed: Defaulting quality and voice to {current_quality} and {current_voice}, respectively\n")
                 if current_model == "github":
                     print("\033[33mWARNING:\033[0m In our testing neither github variant functioned properly\n")
@@ -272,7 +276,7 @@ def main():
             if temp_quality != current_quality:
                 current_quality = temp_quality
                 update_pipeline = 1
-        elif command == "v" or command == "voice":  # TODO voice blending
+        elif command == "v" or command == "voice": 
             print_voices(current_version, voices)
             try:
                 voice_index = int(input("Please select a voice index to use: ").strip())
@@ -304,11 +308,11 @@ def main():
             if temp_language != current_language:
                 current_language = temp_language
                 update_generator = 1
-        elif command == "p" or command == "set-pause": # TODO test better
+        elif command == "p" or command == "set-pause": 
             print(pause_modes)
             pause_index = input(f"Please select a pause mode to use (by index).\nTo keep the current value ({current_pause_mode}), just press enter: ").strip()
             if pause_index != "":
-                if pause_index == "0":
+                if pause_index == "0":  # Just like the other try cases, but I was too lazy to actually build it that way
                     current_pause_mode = "tts"
                     update_generator = 1
                 elif pause_index == "1":
@@ -318,6 +322,7 @@ def main():
                     current_pause_mode = "auto"
                     update_generator = 1
                 else:
+                    # It is possible for the command to break at any input
                     print(f"\033[31mError:\033[0m Invalid index {pause_index}\nAborting pause configuration\n")
                     continue
 
@@ -327,6 +332,7 @@ def main():
                     current_pause_variance = float(temp_variance)
                     update_generator = 1
                 except ValueError as ve:
+                    # If it does break, any previously recorded changes are saved
                     print(f"\033[31mError:\033[0m {ve}\nAborting pause configuration. Partial config saved")
                     continue
 
@@ -339,16 +345,71 @@ def main():
                     print(f"\033[31mError:\033[0m {ve}\nAborting pause configuration. Partial config saved")
                     continue
 
+            # Doubt we really want to play with this, but might as well give the option
             advanced_config = input("Perform advanced pause configuration? [y/n]: ").strip().lower()
             if advanced_config == "y":
                 try:
-                    current_clause_pause_len = int(input("Enter the desired clause pause length (float): ").strip())
-                    current_sentence_pause_len = int(input("Enter the desired sentence pause length (float): ").strip())
-                    current_paragraph_pause_len = int(input("Enter the desired paragraph pause length (float): ").strip())
+                    current_clause_pause_len = float(input("Enter the desired clause pause length (float): ").strip())
+                    current_sentence_pause_len = float(input("Enter the desired sentence pause length (float): ").strip())
+                    current_paragraph_pause_len = float(input("Enter the desired paragraph pause length (float): ").strip())
                     update_generator = 1
                 except ValueError as ve:
                     print(f"\033[31mError:\033[0m {ve}\nAborting pause configuration. Partial config saved")
+        elif command == "sp" or command == "set-spacy":
+            print(spacy_sizes)
+            spacy_index = input(f"Please select a Spacy model size to use (by index): ").strip()
+            if spacy_index == "0":  # Since these lists are fixed size, why go through the int and index hassle
+                current_spacy_size = "sm"
+                update_pipeline = 1
+            elif spacy_index == "1":
+                current_spacy_size = "md"
+                update_pipeline = 1
+            elif spacy_index == "2":
+                current_spacy_size = "lg"
+                update_pipeline = 1
+            elif spacy_index == "3":
+                current_spacy_size = "trf"
+                update_pipeline = 1
+            else:
+                print(f"\033[31mError:\033[0m Invalid index {spacy_index}\n")            
+        elif command == "ss" or command == "short-sentence":
+            option = input("What would you like to do? [clear/disable/configure]: ").strip().lower()
+            if option == "clear":
+                enable_short_sentence = None
+                current_short_sentence_conf = None
+                update_generator = 1
+            elif option == "disable":
+                enable_short_sentence = False
+                update_generator = 1
+            elif option == "configure":
+                min_phonemes = 30
+                temp = input("Enter the minimum number of phonemes for a phrase to no longer be considered short. Press enter to use the default value of 30: ").strip()
+                if temp != "":
+                    try:
+                        min_phonemes = int(temp)
+                    except ValueError as ve:
+                        print(f"\033[31mError:\033[0m {ve}\nDefaulting to 30 phonemes")
+
+                resolver = "randomized-phrase"
+                print(short_sentence_resolvers)
+                resolver_index = input(f"Please select a resolver to use (by index): ").strip()
+                if resolver_index == "0":  # Tired of these if statements yet?
+                    resolver = "phrase"
+                elif resolver_index == "1":
+                    resolver = "randomized-phrase"
+                elif resolver_index == "2":
+                    resolver = "wrap"
+                else:
+                    print(f"\033[31mError:\033[0m Invalid index\nDefaulting to random-phrase")
+
+                current_short_sentence_conf =  pykokoro.short_sentence_handler.ShortSentenceConfig(min_phoneme_length=min_phonemes,
+                                                                                                   resolve_mode=resolver)
+                enable_short_sentence = True
+                update_generator = 1
+        elif command == "f" or command == "file":
+            pass
         elif command == "s" or command == "say":
+            # First update the generator config, if needed, as it is the base config (at least for our purposes)
             if update_generator:
                 generator_config = pykokoro.GenerationConfig(speed=current_speed,
                                                              lang=current_language,
@@ -357,25 +418,33 @@ def main():
                                                              pause_sentence=current_sentence_pause_len,
                                                              pause_paragraph=current_paragraph_pause_len,
                                                              pause_variance=current_pause_variance,
-                                                             random_seed=current_seed)
-                update_pipeline = 1
+                                                             random_seed=current_seed,
+                                                             enable_short_sentence=enable_short_sentence)
+                update_pipeline = 1  # If we change the foundation, got to change everything
                 update_generator = 0
 
+            # Next update the pipeline config, if needed
             if update_pipeline:
                 pipeline_config = pykokoro.PipelineConfig(voice=current_voice,
                                                           model_quality=current_quality,
                                                           model_source=current_model,
                                                           model_variant=current_version,
                                                           provider="auto",
-                                                          generation=generator_config)
-                pipeline = pykokoro.KokoroPipeline(pipeline_config)
+                                                          generation=generator_config,
+                                                          short_sentence_config=current_short_sentence_conf)
+
+                # Defaults to medium so dont need to do this in that case
+                if current_spacy_size != "md": 
+                    pipeline_config = pykokoro.with_spacy_model_size(pipeline_config, size=current_spacy_size)
+
+                pipeline = pykokoro.KokoroPipeline(pipeline_config)  # Finally generate the new engine
                 update_pipeline = 0
             try:
                 play(command_tokens[1].strip(), pipeline)
             except Exception as e:
                 print(f"\033[31mError:\033[0m {e}")
         else:
-                    print(f'Unknown command \"{command[0]}\". Run \"help\" (h) to see a list of available commands or \"quit\" (q) to quit\n')
+            print(f'Unknown command \"{command}\". Run \"help\" (h) to see a list of available commands or \"quit\" (q) to quit\n')
 
         full_command = input("Enter a command to test Kokoro (h for help, q to quit): ").strip()
         command_tokens = full_command.split(" ", 1)
@@ -384,7 +453,7 @@ def main():
 """
 commands
     help - h
-    say - s 
+    say - s DONE
     file - f
     rate - r (change speed) DONE
     voice - v DONE
@@ -392,9 +461,9 @@ commands
     quality - mq DONE
     language - l DONE
     set-pause - p DONE
-    set-spacy - sp
-    trim - t
-    short-sentence - ss
+    set-spacy - sp DONE
+    trim - t DEPRECATE
+    short-sentence - ss DONE
 """    
 
 
