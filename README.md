@@ -365,6 +365,18 @@ notes:
 - github models dont want to work
   - v1.1 tensor(int32) Invalid argument
 - language only important for models trained on a different language
+- Short sentence randomly documented
+- spacy
+  - model is selectable but i dont
+  - i dont know what trf means
+  - need to install each size model
+  - trf failed
+- trim doesnt exist
+- short sentence
+  - target and max reps no longer exist
+  - out of date documentation
+- too many versions no clarity
+- voice blend broken
 
 ## Cloud
 ## Other
