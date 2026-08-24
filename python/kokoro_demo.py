@@ -22,18 +22,18 @@ degrees of freedom/features
 def init():
     """
     A function to initialize several variables used by the demo. Mainly, it loads a
-      bunch of strings and lists from a file for convience and keeping things slightly
+      bunch of strings and lists from a file for convenience and keeping things slightly
       cleaner
     returns:
         value_json["MODELS"] (list(str)) - A list of the pretty print version of available models
         value_json["MODEL_VALUES"] (list((str,str))) - A list of (model, version) pairs for easier processing
         value_json["MODEL_QUALITY"] (dict(str,list(str))) - A dictionary of the supported model quality for each available model
         value_json["VOICES"] (dict(str,list(str))) - A dictionary of available voices for each model version
-        value_json["LANGUAGES"] (str) - A formated string listing the available language options
+        value_json["LANGUAGES"] (str) - A formatted string listing the available language options
         value_json["LANGUAGE_CODES"] (list(str)) - A list of supported languages' language codes
-        value_json["PAUSE_MODES"] (str) - A formated string of TTS pause options
-        value_json["SPACY_MODES"] (str) - A formated string of Spacy model sizes to chose from
-        value_json["SHORT_MODES"] (str) - A formated string of Short Sentence Handling resolvers
+        value_json["PAUSE_MODES"] (str) - A formatted string of TTS pause options
+        value_json["SPACY_MODES"] (str) - A formatted string of Spacy model sizes to choose from
+        value_json["SHORT_MODES"] (str) - A formatted string of Short Sentence Handling resolvers
         value_json["HELP"] (str) - A formatted help message for the available commands
     """
     with open("kokoro_helper.json", "r") as ifp:
@@ -84,19 +84,19 @@ def print_voices(version, voice_list):
 
 def print_config(model, version, quality, voice, language, speed, pause_mode, clause, sentence, paragraph, variance, seed, short, spacy, short_conf):
     """
-    A function to display the current value of all configuratble settings to the user
+    A function to display the current value of all configurable settings to the user
     params:
         model (str) - The Kokoro model currently selected/being used
         version (str) - The version of the model being used
         quality (str) - The model quality selected
         voice (str) - The voice profile being used for the TTS engine
         language (str) - The current input text language set for the system
-        speed (float) - A scalar representing the models rate of speech
+        speed (float) - A scalar representing the model's rate of speech
         pause_mode (str) - The currently chosen algorithm used to add pauses to TTS messages
-        clause (float) - How long to pause after a cluase
+        clause (float) - How long to pause after a clause
         sentence (float) - How long the model should pause at the end of a sentence
         paragraph (float) - How long the model should pause at the end of a paragraph
-        variance (float) - Guassian variance setting added to pauses to make them feel more natural
+        variance (float) - Gaussian variance setting added to pauses to make them feel more natural
         seed (int) - The current random seed being used to generate pause variance
         short (boolean) - Whether to allow/override short sentence handling in the model
         spacy (str) - The current Spacy model size
@@ -115,8 +115,8 @@ def print_quality(model, version, qualities):
     A function to display the available model qualities for a given model to the user
     params:
         model (str) - The current model selected/being used
-        version (str) - THe current version of the model used in the demo
-        qualities (dict(str,list(str))) - A dictionary mapping the availble model qualities to 
+        version (str) - The current version of the model used in the demo
+        qualities (dict(str,list(str))) - A dictionary mapping the available model qualities to 
           each of the possible model combinations
     returns:
         None
@@ -128,12 +128,12 @@ def print_quality(model, version, qualities):
         print(f"\t{i}: {quality}")
         i += 1
 
-    print("\n\033[34mNote:\033[0m 'fp32' provides the highest quality audio, however, for best performance 'q8' is recommended or 'fp16' when quality is critical")
+    print("\n\033[34mNote:\033[0m 'fp32' provides the highest quality audio, however, for best performance, 'q8' is recommended or 'fp16' when quality is critical")
 
 
 def play(message, pipeline):
     """
-    A function to convert the supplies message to audio using the TTS engine provided
+    A function to convert the supplied message to audio using the TTS engine provided
     params:
         message (str) - The text to convert to audio
         pipeline (pykokoro.KokoroPipeline?) - The pipeline used to generate the audio
@@ -154,13 +154,13 @@ def main():
     model_names = model_tokens = qualities = voices = languages = language_codes = pause_modes = spacy_sizes = short_sentence_resolvers = help = 0
     model_names, model_tokens, qualities, voices, languages, language_codes, pause_modes, spacy_sizes, short_sentence_resolvers, help = init()
 
-    # Get the inital model to use
+    # Get the initial model to use
     current_model = ""
     current_version = ""
     model_index = -1
     print_models(model_names)
     while model_index < 0:
-        try:  # With each file, I end up add more and more appropriate safety measures
+        try:  # With each file, I end up adding more and more appropriate safety measures
             model_index = int(input("Please select a model index to use: ").strip())
             current_model = model_tokens[model_index][0]
             current_version = model_tokens[model_index][1] 
@@ -171,8 +171,8 @@ def main():
             print(f"\033[31mError:\033[0m {ie}\n Please select a valid model\n")
 
         """
-        I had issues with the GitHub models. However its hard to say if thats a vald error 
-          or meerly an issue on my environment. As such, I leave the option open for others to
+        I had issues with the GitHub models. However it's hard to say if that's a valid error 
+          or merely an issue in my environment. As such, I leave the option open for others to
           experiment with
         """
         if current_model == "github":
@@ -195,7 +195,7 @@ def main():
     # Output to help keep people in the office
     print("\nInitializing TTS engine: ", end="")
 
-    # Initialize remianing configurable variables
+    # Initialize remaining configurable variables
     current_speed = 1.0
     current_quality = "fp32" if current_model == "github" and current_version == "v1.1-zh" else "q8"
     current_language = "en-us"

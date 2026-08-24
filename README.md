@@ -340,6 +340,184 @@ As one final note, these problems become worse when using the raw audio.
 
 ### Kokoro
 
+Kokoro is an open-weight (i.e., open source) TTS model that tries to achieve large model quality (though at 82 million parameters, it's not that small either) while being more lightweight and faster than larger models. While a [Kokoro](https://pypi.org/project/kokoro/) Python package does exist, its [documentation](https://huggingface.co/hexgrad/Kokoro-82M) is very limited, especially on how to interface with it. For this reason, I instead opted to use the [pykokoro] package, which acts as a wrapper around the underlying model and, more importantly, actually has decent documentation. Regardless of the actual package used, it's still the same underlying core.
+
+First impression from building the demo is that it sounds too close to Totoro and that theme has been stuck in my head ever since. My actual impression is that the pykokoro package is complicated but also clean. The package reportedly comes with several advanced features like voice blending or custom syntaxing as well as provides great customizability over model performance. Despite this complexity, the documentation does a good job of explaining many of these features. However, the documentation is inconsistent. The main issue is that the primary [Docs](https://pykokoro.readthedocs.io/en/latest/index.html) site seems to be outdated compared to the [PyPI pages](https://pypi.org/project/pykokoro/) of more recent releases. Due to this, some of the methods, paths, and settings described by the main server no longer exist in the current build. Wierder was that some functionality, specifically VoiceBlending, was wrong across all documentation I read. No matter which import style I used, I could not find the VoiceBlend class, causing me to have to abandon the feature. Similarly, several of the more advanced functions and parameter minutiae are not explained in the documentation.
+
+TODO - actual voice thoughts
+
+#### Running the Demo
+
+Much like the rest of this library, installing pykokoro is both simple and involved at the same time. Immediately, pykokoro offers several installation options. They are as follows:
+
+- cpu - The basic installation
+- gpu - For NVIDIA CUDA GPUs
+- openvino - For Intel OpenVINO systems, but at time of writing, it's currently broken
+- directml - For Windows GPUs
+- coreml - For Macs
+- all - Despite its name, the only description given is for direct playback support of generated audio
+
+I will note that the documentation references a benchmark file you can run to determine the best option for your device, however, I was never able to find that file on the project's GitHub. Once you have determined how you want to install the library, run:
+
+```
+python3 -m pip install pykokoro[<option>]
+```
+
+Once the installation is complete, you are technically ready to use the package. Some documentation also states that the "espeak-ng" tool must be installed on your device. I did not have to download this myself, though it may have already been present from testing other libraries. For safety, the package can be installed with:
+
+```
+sudo apt-get install espeak-ng
+```
+
+Along with this, pykokoro also has the "optional" dependency of spaCy. While not necessary for basic configurations, it is needed for advanced text splitting. For this functionality, both spaCy and the desired models must be installed. The available models are `en_core_web_sm`, `en_core_web_md`, `en_core_web_lg`, `en_core_web_trf`
+
+```
+python3 -m pip install spacy
+python3 -m spacy download <model>
+```
+
+Finally, as usual, the demo uses both the `csv` and `playsound3` packages for testing. These packages can be installed as follows:
+
+```
+python3 -m pip install playsound3 csv
+```
+
+After installing all the necessary components, you run the demo as follows:
+
+```
+python3 kokor_demo.py
+```
+
+Upon opening, the file will prompt you for some initial configuration before entering the standard input loop for testing. A list of the supported commands can be displayed by entering `h`.
+
+#### Installation Troubleshooting
+
+After installing pykokoro, I encountered several issues when attempting to run it. Starting with the simpler problems, I was unable to download the `en_core_web_trf` spaCy model. Attempts to do so failed when trying to install its own dependencies and I ultimately scrapped downloading it. As such, it was impossible for me to use the `trf` spaCy model during testing. That said, the demo maintains support for the model if you can download it.
+
+Another problem I encounterd was hidden dependencies in the repository. The main one I encountered was `pyopenjtalk`. When investigating what some of the language settings did, I switched to one of the Japanese voice models and set the language to Japanese. However, when I went to test the system, it crashed because I was missing the `pyopenjtalk` library. Based on its [PyPI page](https://pypi.org/project/pyopenjtalk/0.0.2/), this library seems to parse katakana. While this makes sense, I never saw mention of the library in the documentation. Similarly, the Chinese voices require the `cn2an` package. Given this, other hidden dependencies may still be present in the demo that I did not encounter. If you encounter any such missing dependency, install it with Python as follows:
+
+```
+python -m pip3 install <dependency>
+```
+
+The largest issue I had was CUDA support. Despite installing pykokoro with the `gpu` option selected, attempts to run the TTS engine on my GPU would fail to find a needed file, error out, and default back to the CPU. Ultimately, the error was stemming from the `onnxruntime-gpu` package, which was nice enough to provide a link to [its dependencies](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements) in its error message. This package required that the appropriate CUDA and cuDNN versions be present on the device. Addressing this turned out to be a bit confusing. You can install cuDNN using the `nvidia-cudnn` Python package, however, according to its documentation, you must run:
+
+```
+python3 -m pip install nvidia-pyindex
+python3 -m pip install nvidia-cudnn
+```
+For me, the `nvidia-cudnn` package could not be found. If that's the case, you may need to install `nvidia-cudnn-cu13` instead. This package turned out to already be present on my device. Ensuring that CUDA was present required updating my machine's NVIDIA drivers. Details on how to update NVIDIA drivers in Ubuntu can be found [here](https://ubuntu.com/server/docs/how-to/graphics/install-nvidia-drivers/). One update and restart later, the error message had gone away. That said, several warnings continue to persist for me. As such, I cannot be certain whether the package is fully installed properly and whether these warnings impact model performance.
+
+#### Configurable Settings
+
+This library has many configurable model settings. Despite narrowing them down to just those that seem interesting or useful for the intended end goal, this still left 16 variables to play with. For that reason, I do my best to provide a brief description of each setting and its effects on the model (if applicable).
+
+- model - Which Kokoro model to use. Options are Hugging Face or GitHub
+- variant - Which version of the model to use. Supported versions are v1.0 and v1.1-zh. Version selection is combined with model selection in the demo
+- quality - Which model quality to use for the TTS generation. This ultimately controls how large the model is, with larger qualities being slower but achieving better audio than smaller qualities. Supported qualities vary per model, but in all there are up to 8 qualities to select from: `fp32`, `fp16`, `q8`, `q8f16`, `q4`, `q4f16`, `uint8`, and `uint8f16`. `fp32` is the largest and highest quality configuration while `q4` is the smallest and fastest.
+- voice - What voice model to use for the TTS engine. V1.0 models come with 54 voices from various languages, while v1.1-zh supports 103 voice prints.
+- rate - A scalar that controls how fast the model speaks. 1.0 for default. pykokoro recommends using values between 0.5 and 2.0.
+- language - The language the text is written in. Helps inform the model on how to pronounce the message. At least that's the idea, in practice, that does not seem to always be the case.
+- pause configuration
+    - pause mode - Controls how pauses and breaks are added into the TTS message for parsing. Available modes are: `tts`, `manual`, and `auto`. The library recommends `tts` for most natural speech
+    - clause pause length - How long the model should pause at the end of a clause or comma
+    - sentence pause length - How long the model should pause at the end of a sentence
+    - paragraph pause length - How long the model should pause at the end of a paragraph
+    - pause variance - Controls how much the actual pause can vary from the set lengths. This causes each pause to be slightly different, leading to more natural-sounding speech. Defaults to 0.05. Can be set to 0.0 to disable any variance in pausing
+    - random seed - An optional seed value such that pause generation is consistent across runs of the same message
+- enable short sentence - Kokoro can struggle with sentences or repeated phrases that are too short. As such, this indicates whether the model should attempt to add additional context to improve generation. However, this boolean specifically overwrites the short sentence configuration in the pipeline settings. By default, this option is empty, and the model defaults to how the short sentence config is defined. However, by specifically setting the value to true or false, it explicitly enables/disables this functionality
+- short sentence configuration
+    - minimum phoneme length - The minimum number of phonemes a message must have to not be considered short
+    - resolve mode - In theory, this controls how context is added to a phrase to improve generation. However, outside the options being `phrase`, `randomized-phrase`, and `wrap`, there is not much documentation on what this does. Similarly, testing each model revealed negligible difference. Note that this may be because I'm not actually sure what I need to do to trigger the system.
+- spacy model size - This is another option that isn't really explained. The spaCy library is a text processing library that seems to be used for tokenization of the message. Based on installing each model, I'm pretty sure size in this instance is similar to model quality and informs how big it is, where larger sizes generally mean better output. That said, when manually testing, I cannot hear a difference.
+
+#### Voices
+
+Kokoro itself comes with [54](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md) or [103](https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh/tree/main/voices) voices to choose from, depending on which version you select. Regardless of the version, each voice follows the same format:
+
+```
+<accent><gender>_<id>
+```
+
+While each voice starts with an accent code, it has the most options, so I'm going to leave it for last. The gender of the model is either "f" or "m", indicating whether the voice is more feminine or masculine. The `<id>` is simply the unique name of the model. This might be an actual name like `sara` or `liam` but it may also be an integer like `002`. Coming back to accent, it is a single character representing the voice's accent. The available accents are:
+
+- a - American English
+- b - British English
+- e - Spanish
+- f - French
+- h - Hindi
+- i - Italian
+- j - Japanese
+- p - Brazilian Portuguese
+- z - Mandarin Chinese
+
+For the voices included with Kokoro v1.0, each model is also rated by its performance. These ratings are available on their [Hugging Face repository](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md). According to the repo, the top voices in descending order are: "af_heart", "af_bella", "af_nicole", "bf_emma", and "ff_siwis". Interestingly, the overall grades seem to be biased towards American then British English. Also, honorable mention for "am_adam" getting the worst grade of F+.
+
+Sadly, I was unable to get this feature to work, but Kokoro is supposed to also support voice blends. Voice blending would allow you to combine any number of these existing voices into a new voice as well as provide weights for exactly how much each voice should impact the end result.
+
+Finally, pykokoro also allows you to specify a custom voice by providing it the path to a `.bin` file for the voice. So in theory, if you used another method to clone your voice, such as with Coqui-tts, you could use the clone in Kokoro. Custom models were not configured for this demo.
+
+#### Performance Notes
+
+There are several comments scattered throughout the documentation about where files are stored and how to improve performance.
+
+The first thing to note is that models are pulled to your local machine and cached. That removes any performance impact of having to beacon out to some remote party for each message. In case you need to remove these files, they should be located in:
+
+- `~/.cache/pykokoro/models/huggingface/v1.0/` and `~/.cache/pykokoro/voices/huggingface/v1.0/`
+- `~/.cache/pykokoro/models/huggingface/v1.1-zh/` and `~/.cache/pykokoro/voices/huggingface/v1.1-zh/`
+- `~/.cache/pykokoro/models/github/v1.0/` and `~/.cache/pykokoro/voices/github/v1.0/`
+- `~/.cache/pykokoro/models/github/v1.1-zh/` and `~/.cache/pykokoro/voices/github/v1.1-zh/`
+
+I assume this is based on Linux as no actual OS description is given. The pykokoro documentation does discuss functions to [get the file path](https://pykokoro.readthedocs.io/en/latest/advanced_features.html#get-model-paths) of a model if needed, however, I cannot confirm whether the documentation is accurate.
+
+The documentation also gives 3 direct tips to improve performance. First, they recommend always using a GPU when possible, but that's kind of already a given for AI-based things. Second, they recommend using the `q8` model quality, `fp16` at best, for a good trade-off between speed and audio quality. For this reason, the demo defaults to `q8`. Finally, the documentation suggests using the `auto` pause mode to improve generation quality for long texts. I am not sure if this clashes with their earlier statement that the `tts` mode provides the most natural results.
+
+The last thing to comment on is the generated audio itself. In some of the newer documentation, there is a comment about "releasing" the audio or portions of the audio. This is to say, letting it get freed and clearing up memory. Now they do not say how much memory this actually frees, but for a single message I doubt it matters. Where things get interesting is in how we play the resulting audio. Due to outdated docs, I save the waveform to a .wav and then play the file. As such, only 1 audio result exists at a time. In the most recent package version though, the audio can be played directly by pykokoro itself. In this model, multiple results can exist at once, potentially impacting memory. I cant image the audio results are actually too large, but maybe pykokoro is very inefficient in its final waveform. Regardless, this brings an interesting trade-off between memory and potential slowdowns due to file operations (and disk space, but again I don't think this is going to be consuming much either way). It's an interesting thing that needs more thought if this package is chosen.  
+
+#### Advanced Features
+
+memorry management
+
+paragraph unit streaming/streaming
+
+pipeline modification
+
+voice_blending
+
+audio playback
+
+phoneme stuff
+
+SSMD stuff
+
+short sentence
+
+local models
+
+custom tokenizer
+
+audio trimming
+
+
+#### Thoughts on pykokoro itself
+
+pykokoro turned out to be a very hard package to document. Between its sheer size, variable documentation quality, and unexplained quirks, I ended up with many comments before I even began actual testing of its functionality. Similarly, many of these thoughts are so central to pykokoro itself that it was hard to figure out where/when to discuss them. Despite that, many of these quirks also have little impact on the actual end product. For this reason, I've chosen to separate these broader pykokoro comments from the discussion of the actual TTS quality.
+
+One of the first and biggest things to mention is again that the documentation for pykokoro is varied. While it has a central documentation server, the server does not fully describe all aspects of the library, and parts of the documentation seem outdated. Even more modern versions of the documentation located on the actual PyPI webpage seem to be incorrect at times. This makes working with the library challenging at times and even breaks some functionality. For some concrete examples, both the voice blending and audio trimming functions discussed in the documentation (regardless of the version) did not exist in my build. To make it more confusing, even when using the documentation for the exact pykokoro version I had installed, the voice blend code could not be found. Similarly, some of the listed parameters for classes like the ShortSentenceConfig no longer were supported. While replacements likely exist (along with more parameters that are never discussed), they aren't mentioned. This does limit our control over the model somewhat. Odder still are the parameters that only appear in a single code snippet. When discussing advanced string parsing, a `volume` variable can be seen. However, throughout the entirety of the docs there is no mention of being able to control the speech volume. And so for the purposes of this demo at least, volume cannot be controlled.
+
+Branching from this, there is also some confusion about the available models. The main documentation lists four available models: Hugging Face v1.0, Hugging Face v1.1-zh, GitHub V1.0, and  GitHub v1.1-zh. However, in the 0.8.6 documentation, there is mention of a v1.2-de-martin variant of at least the GitHub model as well as the implication of a legacy v1.1-de version. As I only found this information recently, the demo is not built to support them. While technically incomplete, I don't think this actually poses an issue. I say this because the GitHub models never ran in my tests. When using the v1.0 model, the supported voices did not match the 54 voices given by the documentation. Instead, the only voice available was labeled simply `af`. Hardcoding the voice for testing, speech generation continued to fail. For the v1.1-zh version, there was a broken dependency causing the model to call a function with the wrong type and crash. As such, the GitHub models may not be usable at all. At least that's the case for me. To be safe, I left the GitHub model selectable in the demo for others to experiment with.
+
+Another thing I noticed was with the voices/language options. Kokoro is a multilingual model and thus has various pretrained voices for different languages. However, each voice can be used for various languages regardless of its accent. This is why the language parameter is needed to inform the model what language it is parsing and inform the model about pronunciation. At least this is how it works for English voices. Using the default first voice of af_heart, when the language is set to English, it pronounces Italian words incorrectly. Switching the language to Italian fixes the problem. The issue is that this does not seem to be true in reverse. Using the Italian voice if_sara, the model mispronounces English regardless of the language settings. Even worse, when using a Japanese voice (jm_kumo), it just spelled most of the words. This would suggest that while foreign voices can handle English text, they actually aren't meant to. This would further draw into question whether the v1.1-zh models are worthwhile, as the majority of the voices are based on Chinese. That said, the Chinese voice prints do seem to handle English fine. Ultimately, it makes the impact of the language parameter a bit wishy washy and arbitrary. This may be on a per-language or per-voice basis, but I did not try every combination to confirm.    
+
+#### Thoughts on TTS quality
+
+check model quality speed
+
+over 2.0 breaks down, skips word but doesnt seem faster (4.0), below .5 its shakey (.25)
+
+#### Documantaion
+
+
 Oh this is a both complicated and suprisingly clean. Also the My Neighbor Totoro theme is stuck in my head. 
 
 - descrepencies in docs
@@ -354,17 +532,9 @@ notes:
 - slow message generation or just initial install? 
   - seems like the bulk was the initial but still seems to have slight delay
   - may be issues with my gpu
-- voices from other languages can handle english but I dont think they are meant to
-  - italian pronounces things the italian way
-  - pyopenjtalk and its in japanese
-  - v 1.1 may not be worth it then
-  - github v1.0 voice list wrong
 - quality
   - small scale, sound indistiguishable for the most part. May be more noticable on the test corpus
   - natural variance
-- github models dont want to work
-  - v1.1 tensor(int32) Invalid argument
-- language only important for models trained on a different language
 - Short sentence randomly documented
 - spacy
   - model is selectable but i dont
@@ -372,11 +542,6 @@ notes:
   - need to install each size model
   - trf failed
 - trim doesnt exist
-- short sentence
-  - target and max reps no longer exist
-  - out of date documentation
-- too many versions no clarity
-- voice blend broken
 
 ## Cloud
 ## Other
