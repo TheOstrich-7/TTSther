@@ -131,6 +131,21 @@ def print_quality(model, version, qualities):
     print("\n\033[34mNote:\033[0m 'fp32' provides the highest quality audio, however, for best performance, 'q8' is recommended or 'fp16' when quality is critical")
 
 
+def play_from_file(filename, pipeline):
+    """
+    Load test messages from the supplied file and run them through the TTS engine
+    params:
+        filename (str) - The test file to load from
+        pipeline (pykokoro.KokoroPipeline?) - The pipeline used to make the audio
+    returns:
+        None
+    """
+    with open(filename, "r") as ifp:
+        csv_reader = csv.reader(ifp)
+        for row in csv_reader:
+            play(f"{row[0]} says {row[1]}", pipeline)
+
+
 def play(message, pipeline):
     """
     A function to convert the supplied message to audio using the TTS engine provided
@@ -407,7 +422,39 @@ def main():
                 enable_short_sentence = True
                 update_generator = 1
         elif command == "f" or command == "file":
-            pass
+            # Its funny that I didnt want to pass stuff into play so this has to be copied I guess
+            if update_generator:
+                generator_config = pykokoro.GenerationConfig(speed=current_speed,
+                                                             lang=current_language,
+                                                             pause_mode=current_pause_mode,
+                                                             pause_clause=current_clause_pause_len,
+                                                             pause_sentence=current_sentence_pause_len,
+                                                             pause_paragraph=current_paragraph_pause_len,
+                                                             pause_variance=current_pause_variance,
+                                                             random_seed=current_seed,
+                                                             enable_short_sentence=enable_short_sentence)
+                update_pipeline = 1
+                update_generator = 0
+            
+            if update_pipeline:
+                pipeline_config = pykokoro.PipelineConfig(voice=current_voice,
+                                                          model_quality=current_quality,
+                                                          model_source=current_model,
+                                                          model_variant=current_version,
+                                                          provider="auto",
+                                                          generation=generator_config,
+                                                          short_sentence_config=current_short_sentence_conf)
+            
+                if current_spacy_size != "md": 
+                    pipeline_config = pykokoro.with_spacy_model_size(pipeline_config, size=current_spacy_size)
+            
+                pipeline = pykokoro.KokoroPipeline(pipeline_config)  # Finally generate the new engine
+                update_pipeline = 0
+
+            try:
+                play_from_file(command_tokens[1].strip(), pipeline)
+            except Exception as e:
+                print(f"\033[31mError:\033[0m {e}")    
         elif command == "s" or command == "say":
             # First update the generator config, if needed, as it is the base config (at least for our purposes)
             if update_generator:
