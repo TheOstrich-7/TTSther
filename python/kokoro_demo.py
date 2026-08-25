@@ -3,20 +3,7 @@ import json
 import playsound3
 import pykokoro
 import soundfile
-"""
-degrees of freedom/features
-    voices
-        voice blending
-    model
-    model quality
-    language
-    speed
-    pause config
-    scapy
-    trim
-    short sentences
-    seed
-"""
+# import time
 
 
 def init():
@@ -140,11 +127,16 @@ def play_from_file(filename, pipeline):
     returns:
         None
     """
+    # times = []
     with open(filename, "r") as ifp:
         csv_reader = csv.reader(ifp)
         for row in csv_reader:
             play(f"{row[0]} says {row[1]}", pipeline)
+            # times.append(play(f"{row[0]} says {row[1]}", pipeline))
 
+    # with open("gen_times.txt", "w") as ofp:
+        # for value in times:
+            # ofp.write(f"{value}\n")
 
 def play(message, pipeline):
     """
@@ -155,9 +147,12 @@ def play(message, pipeline):
     returns:
         None
     """
+    # start = time.time()
     audio = pipeline.run(message)
+    # end = time.time()
     soundfile.write("kokoro_temp.wav", audio.audio, audio.sample_rate)
     playsound3.playsound("kokoro_temp.wav")
+    # return end - start
 
 
 def main():
@@ -497,29 +492,7 @@ def main():
         command_tokens = full_command.split(" ", 1)
         command = command_tokens[0].strip().lower()
 
-"""
-commands
-    help - h
-    say - s DONE
-    file - f
-    rate - r (change speed) DONE
-    voice - v DONE
-    model - m DONE
-    quality - mq DONE
-    language - l DONE
-    set-pause - p DONE
-    set-spacy - sp DONE
-    trim - t DEPRECATE
-    short-sentence - ss DONE
-"""    
-
-
-
-
 
 if __name__ == "__main__":
     main()
 
-#test = pykokoro.KokoroPipeline(pykokoro.PipelineConfig(voice="af_sarah", model_source="huggingface", model_variant="v1.0", model_quality="q8"))
-
-#print(test.synth._kokoro.get_voices())
