@@ -1,0 +1,1 @@
+data.zip.gpg filter=lfs diff=lfs merge=lfs -text
