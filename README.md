@@ -607,31 +607,10 @@ Finally, the GPU memory usage of each quality was about the same. Each quality's
 
 #### Documantaion
 
-
-Oh this is a both complicated and suprisingly clean. Also the My Neighbor Totoro theme is stuck in my head. 
-
-- descrepencies in docs
-- manual spacy installs
-- voices and their rankings
-- advanced features
-- weird install warnings
-
-
-
-notes:
-- slow message generation or just initial install? 
-  - seems like the bulk was the initial but still seems to have slight delay
-  - may be issues with my gpu
-- quality
-  - small scale, sound indistiguishable for the most part. May be more noticable on the test corpus
-  - natural variance
-- Short sentence randomly documented
-- spacy
-  - model is selectable but i dont
-  - i dont know what trf means
-  - need to install each size model
-  - trf failed
-- trim doesnt exist
+[Older Doc Server](https://pykokoro.readthedocs.io/en/latest/index.html)
+[More Recent PyPI Docs](https://pypi.org/project/pykokoro/)
+[Github repo](https://github.com/buchwandler/pykokoro)
+[Hugging Face](https://huggingface.co/hexgrad/Kokoro-82M#model-facts)
 
 ## Cloud
 ## Other
@@ -698,10 +677,4 @@ https://edge-tts.com/
 https://pypi.org/project/edge-tts-ext/
 https://pypi.org/project/edge-tts/
 
-https://pypi.org/project/pykokoro/
-https://github.com/buchwandler/pykokoro
-https://pykokoro.readthedocs.io/en/latest/index.html
-https://huggingface.co/hexgrad/Kokoro-82M#model-facts
-https://github.com/hexgrad/kokoro
-https://pypi.org/project/kokoro/
-https://github.com/hexgrad/kokoro
+
